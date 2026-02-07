@@ -17,7 +17,7 @@ const RealTimeDashboard = () => {
     const [selectedDirection, setSelectedDirection] = useState('all');
     const [loading, setLoading] = useState(false);
 
-    const handleSearch = async (routeNo) => {
+    const handleSearch = async (routeNo, resetDirection = true) => {
         setLoading(true);
         setViewType('route');
         setActiveRoute(routeNo);
@@ -32,7 +32,9 @@ const RealTimeDashboard = () => {
                 ]);
 
                 setRouteStations(stations);
-                setSelectedDirection('all'); // Reset direction filter
+                if (resetDirection) {
+                    setSelectedDirection('all'); // Reset direction filter only for new searches
+                }
                 setBusLocations(locations.map((loc, idx) => ({
                     id: idx,
                     vehNo: loc.vehNo,
@@ -72,9 +74,9 @@ const RealTimeDashboard = () => {
 
     const handleDirectionChange = async (direction) => {
         setSelectedDirection(direction);
-        // Refresh data for the current route
+        // Refresh data for the current route without resetting direction
         if (activeRoute) {
-            await handleSearch(activeRoute);
+            await handleSearch(activeRoute, false);
         }
     };
 
