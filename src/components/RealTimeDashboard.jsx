@@ -70,6 +70,14 @@ const RealTimeDashboard = () => {
         fetchArrivals();
     };
 
+    const handleDirectionChange = async (direction) => {
+        setSelectedDirection(direction);
+        // Refresh data for the current route
+        if (activeRoute) {
+            await handleSearch(activeRoute);
+        }
+    };
+
     // 2-second Auto-refresh
     useEffect(() => {
         const interval = setInterval(() => {
@@ -104,19 +112,19 @@ const RealTimeDashboard = () => {
                     {viewType === 'route' && (
                         <div style={{ display: 'flex', gap: '8px', marginRight: '12px' }}>
                             <button
-                                onClick={() => setSelectedDirection('all')}
+                                onClick={() => handleDirectionChange('all')}
                                 className={`direction-btn ${selectedDirection === 'all' ? 'active' : ''}`}
                             >
                                 전체
                             </button>
                             <button
-                                onClick={() => setSelectedDirection('0')}
+                                onClick={() => handleDirectionChange('0')}
                                 className={`direction-btn ${selectedDirection === '0' ? 'active' : ''}`}
                             >
                                 상행선
                             </button>
                             <button
-                                onClick={() => setSelectedDirection('1')}
+                                onClick={() => handleDirectionChange('1')}
                                 className={`direction-btn ${selectedDirection === '1' ? 'active' : ''}`}
                             >
                                 하행선
