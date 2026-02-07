@@ -101,20 +101,30 @@ const RealTimeDashboard = () => {
                 </div>
             </div>
 
-            {viewType === 'station' ? (
+            {loading && stationArrivals.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem', color: '#86868b' }}>
+                    실시간 데이터를 불러오는 중...
+                </div>
+            ) : viewType === 'station' ? (
                 <div className="arrival-list">
-                    {stationArrivals.map((bus, index) => (
-                        <div key={index} className="bus-card">
-                            <div className="bus-info-main">
-                                <div className="bus-route-no" style={{ color: '#ff3b30' }}>{bus.routeNo}</div>
-                                <div className="bus-station-info">{bus.arrPrevStationCnt} 정류장 전</div>
+                    {stationArrivals.length > 0 ? (
+                        stationArrivals.map((bus, index) => (
+                            <div key={index} className="bus-card">
+                                <div className="bus-info-main">
+                                    <div className="bus-route-no" style={{ color: '#ff3b30' }}>{bus.routeNo}</div>
+                                    <div className="bus-station-info">{bus.arrPrevStationCnt} 정류장 전</div>
+                                </div>
+                                <div className="bus-arrival-time">
+                                    <div className="time-value">{Math.floor(bus.arrTime / 60)}분</div>
+                                    <div className="time-unit">후 도착</div>
+                                </div>
                             </div>
-                            <div className="bus-arrival-time">
-                                <div className="time-value">{Math.floor(bus.arrTime / 60)}분</div>
-                                <div className="time-unit">후 도착</div>
-                            </div>
+                        ))
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem', background: 'rgba(0,0,0,0.03)', borderRadius: '20px', color: '#86868b' }}>
+                            현재 대구역 주변에 운행 중인 버스가 어둡습니다.
                         </div>
-                    ))}
+                    )}
                 </div>
             ) : (
                 <div className="route-map-container">
