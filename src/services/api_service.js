@@ -81,8 +81,8 @@ async function getRouteLocations(routeId) {
 
         const items = data.body?.items || [];
         return items.map(item => ({
-            vehNo: item.vhcNo,
-            stationNm: item.bsNm, // Note: bsNm might be available in getPos02
+            vehNo: item.vhcNo || item.vhcNo2 || '알 수 없음',
+            stationNm: item.bsNm || '정보 없음',
             arrPrevStationCnt: item.bsGap || 0,
             x: item.xPos,
             y: item.yPos
