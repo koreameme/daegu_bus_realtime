@@ -90,7 +90,7 @@ const RealTimeDashboard = () => {
             }
         }, 2000);
         return () => clearInterval(interval);
-    }, [viewType, activeRoute]);
+    }, [viewType, activeRoute, selectedDirection]);
 
     useEffect(() => {
         fetchArrivals();
