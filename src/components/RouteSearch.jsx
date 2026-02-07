@@ -46,20 +46,19 @@ const RouteSearch = ({ onSearch, showReset, onReset }) => {
     return (
         <div className="search-container">
             <form onSubmit={handleSubmit} className="search-form">
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
+                <div className="search-row">
                     <input
                         type="text"
                         placeholder="노선 번호 입력 (예: 급행1, 401)"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
+                        className="search-input"
                         style={{
-                            flex: 1,
                             padding: '14px 20px',
                             borderRadius: '16px',
                             border: '1px solid rgba(0,0,0,0.1)',
                             background: 'rgba(255,255,255,0.9)',
                             backdropFilter: 'blur(10px)',
-                            fontSize: '1rem',
                             fontWeight: '600',
                             outline: 'none',
                             boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
@@ -77,7 +76,6 @@ const RouteSearch = ({ onSearch, showReset, onReset }) => {
                             type="button"
                             className="reset-button"
                             onClick={handleReset}
-                            style={{ padding: '0 16px', borderRadius: '16px', height: 'auto' }}
                         >
                             초기화
                         </button>
@@ -86,7 +84,7 @@ const RouteSearch = ({ onSearch, showReset, onReset }) => {
             </form>
 
             {history.length > 0 && (
-                <div className="recent-searches">
+                <div className="recent-searches" style={{ width: '100%', maxWidth: '500px' }}>
                     <div className="recent-header">
                         <span>최근 검색</span>
                         <button onClick={clearHistory} className="clear-history">지우기</button>
