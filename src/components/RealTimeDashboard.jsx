@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import RouteSearch from './RouteSearch.jsx';
-import { getBusArrivals, getRouteId, getRouteLocations } from '../services/api_service.js';
+import { getBusArrivals, getRouteId, getRouteLocations, getRouteStations } from '../services/api_service.js';
 import '../styles/BusArrival.css';
 
 const FIXED_STATIONS = [
@@ -13,6 +13,7 @@ const RealTimeDashboard = () => {
     const [activeRoute, setActiveRoute] = useState(null);
     const [busLocations, setBusLocations] = useState([]);
     const [stationArrivals, setStationArrivals] = useState([]);
+    const [routeStations, setRouteStations] = useState([]);
     const [loading, setLoading] = useState(false);
 
     const handleSearch = async (routeNo) => {
@@ -23,11 +24,17 @@ const RealTimeDashboard = () => {
         try {
             const routeId = await getRouteId(routeNo);
             if (routeId) {
-                const locations = await getRouteLocations(routeId);
+                // Fetch both locations and the full station list for the route
+                const [locations, stations] = await Promise.all([
+                    getRouteLocations(routeId),
+                    getRouteStations(routeId)
+                ]);
+
+                setRouteStations(stations);
                 setBusLocations(locations.map((loc, idx) => ({
                     id: idx,
                     vehNo: loc.vehNo,
-                    stationName: loc.stationNm,
+                    stationId: loc.stationId,
                     stationIdx: idx
                 })));
             }
@@ -126,27 +133,33 @@ const RealTimeDashboard = () => {
             ) : (
                 <div className="route-map-container">
                     <div className="route-track"></div>
-                    {FIXED_STATIONS.map((station, idx) => {
-                        const busesAtThisStation = busLocations.filter(b => b.stationName === station);
-                        return (
-                            <div key={idx} className={`station-item ${busesAtThisStation.length > 0 ? 'active' : ''}`}>
-                                <div className="station-marker"></div>
-                                <div className="station-name">{station}</div>
-                                <div className="bus-tags-container">
+                    {routeStations.length > 0 ? (
+                        routeStations.map((station, idx) => {
+                            const busesAtThisStation = busLocations.filter(b => b.stationId === station.bsId);
+                            return (
+                                <div key={idx} className={`station-item ${busesAtThisStation.length > 0 ? 'active' : ''}`}>
+                                    <div className="station-marker"></div>
+                                    <div className="station-name">{station.stationNm}</div>
+                                    <div className="bus-tags-container">
+                                        {busesAtThisStation.map((bus, bIdx) => (
+                                            <div key={`${bus.id}-${bIdx}`} className="bus-label">
+                                                {bus.vehNo}
+                                            </div>
+                                        ))}
+                                    </div>
                                     {busesAtThisStation.map((bus, bIdx) => (
-                                        <div key={`${bus.id}-${bIdx}`} className="bus-label">
-                                            {bus.vehNo}
+                                        <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
+                                            🚌
                                         </div>
                                     ))}
                                 </div>
-                                {busesAtThisStation.map((bus, bIdx) => (
-                                    <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
-                                        🚌
-                                    </div>
-                                ))}
-                            </div>
-                        );
-                    })}
+                            );
+                        })
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '2rem', color: '#86868b' }}>
+                            정류장 정보를 불러올 수 없거나 노선 정보가 없습니다.
+                        </div>
+                    )}
                 </div>
             )}
 

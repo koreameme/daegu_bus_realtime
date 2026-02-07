@@ -83,6 +83,7 @@ async function getRouteLocations(routeId) {
         return items.map(item => ({
             vehNo: item.vhcNo || item.vhcNo2 || '알 수 없음',
             stationNm: item.bsNm || '정보 없음',
+            stationId: item.bsId, // Use this for matching
             arrPrevStationCnt: item.bsGap || 0,
             x: item.xPos,
             y: item.yPos
@@ -96,8 +97,38 @@ async function getRouteLocations(routeId) {
     }
 }
 
+/**
+ * Fetches the list of stations for a specific route.
+ */
+async function getRouteStations(routeId) {
+    if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
+
+    const url = `${BASE_URL}/getBs02?serviceKey=${SERVICE_KEY}&routeId=${routeId}`;
+
+    try {
+        const response = await axios.get(url);
+        const data = response.data;
+        const items = data.body?.items || [];
+
+        return items.map(item => ({
+            stationNm: item.bsNm,
+            bsId: item.bsId,
+            x: item.xPos,
+            y: item.yPos
+        }));
+    } catch (error) {
+        console.warn(`[Mock] Station list fetch failed. Using mock stations.`);
+        return [
+            { stationNm: '대구역', bsId: '7031011500' },
+            { stationNm: '중앙로역', bsId: '7031011600' },
+            { stationNm: '반월당역', bsId: '7031011700' }
+        ];
+    }
+}
+
 export {
     getBusArrivals,
     getRouteId,
-    getRouteLocations
+    getRouteLocations,
+    getRouteStations
 };
