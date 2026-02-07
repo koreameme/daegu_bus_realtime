@@ -86,7 +86,7 @@ const RealTimeDashboard = () => {
             if (viewType === 'station') {
                 fetchArrivals();
             } else if (viewType === 'route' && activeRoute) {
-                handleSearch(activeRoute);
+                handleSearch(activeRoute, false); // Don't reset direction on auto-refresh
             }
         }, 2000);
         return () => clearInterval(interval);
