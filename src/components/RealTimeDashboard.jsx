@@ -43,7 +43,7 @@ const RealTimeDashboard = () => {
         setViewType('station');
         setActiveRoute(null);
         try {
-            const arrivals = await getBusArrivals('00192'); // 대구역 default
+            const arrivals = await getBusArrivals('7001001400'); // 대구역 (dbmsapi02)
             setStationArrivals(arrivals.map(arr => ({
                 routeNo: arr.routeNo,
                 arrTime: parseInt(arr.arrTime),

@@ -1,52 +1,40 @@
 import axios from 'axios';
-import { XMLParser } from 'fast-xml-parser';
 
 // Use Vite environment variables (requires VITE_ prefix in .env)
 const SERVICE_KEY = import.meta.env.VITE_DAEGU_BUS_SERVICE_KEY;
-const ARRIVAL_URL = 'https://apis.data.go.kr/6270000/dgBusArriveService/getBusArriveInfoList';
-const ROUTE_URL = 'https://apis.data.go.kr/6270000/dgBusRouteService/getBusRouteList';
-const LOCATION_URL = 'https://apis.data.go.kr/6270000/dgBusLocationService/getBusLocationList';
+const BASE_URL = 'https://apis.data.go.kr/6270000/dbmsapi02';
 
 /**
  * Fetches real-time bus arrival information for a specific stop.
- * @param {string} stopId - The unique ID of the bus stop.
- * @returns {Promise<Array>} - A list of arriving bus information.
  */
 async function getBusArrivals(stopId) {
-    if (!SERVICE_KEY) {
-        throw new Error('DAEGU_BUS_SERVICE_KEY is not defined in .env');
-    }
+    if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
 
-    // CRITICAL: We construct the URL manually with the RAW service key 
-    // to avoid double-encoding issues (which cause 500/Auth errors).
-    const requestUrl = `${ARRIVAL_URL}?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10&stopId=${stopId}`;
-    console.log(`[DEBUG] Requesting: ${requestUrl}`);
+    const url = `${BASE_URL}/getRealtime02?serviceKey=${SERVICE_KEY}&bsId=${stopId}&pageNo=1&numOfRows=10`;
 
     try {
-        const response = await axios.get(requestUrl);
-        console.log(`[DEBUG] Response Status: ${response.status}`);
-        console.log(`[DEBUG] Raw Response: ${String(response.data).substring(0, 200)}...`);
+        const response = await axios.get(url);
+        // The new API usually returns JSON by default or we can force it.
+        // It seems the user's sample was JSON.
+        const data = response.data;
 
-        // Public API usually returns XML by default or if requested.
-        // We parse it to a clean JSON object.
-        const parser = new XMLParser();
-        const jsonObj = parser.parse(response.data);
-
-        const header = jsonObj.response?.header;
-        if (header?.resultCode !== '00') {
-            throw new Error(`API Error: ${header?.resultMsg || 'Unknown error'}`);
+        if (data.header?.resultCode !== '0000') {
+            throw new Error(`API Error: ${data.header?.resultMsg}`);
         }
 
-        const items = jsonObj.response?.body?.items?.item;
-
-        // Handle both single item (object) and multiple items (array)
+        const items = data.body?.items;
         if (!items) return [];
-        return Array.isArray(items) ? items : [items];
+
+        // Map new fields to match existing UI
+        return items.map(item => ({
+            routeNo: item.routeNo,
+            arrTime: item.arrTime,
+            arrPrevStationCnt: item.bsGap || 0,
+            routeId: item.routeId
+        }));
 
     } catch (error) {
-        console.warn(`[WARNING] API call failed for stop ${stopId}. Returning mock data for development. Error: ${error.message}`);
-
-        // Mock fallback data for development
+        console.warn(`[WARNING] API call failed. Returning mock data. Error: ${error.message}`);
         return [
             { routeNo: '급행1', arrTime: 320, arrPrevStationCnt: 2 },
             { routeNo: '401', arrTime: 540, arrPrevStationCnt: 4 },
@@ -57,59 +45,53 @@ async function getBusArrivals(stopId) {
 
 /**
  * Searches for a route by number and returns its ID.
- * @param {string} routeNo - The bus route number (e.g., '급행1').
- * @returns {Promise<string|null>} - The route ID.
  */
 async function getRouteId(routeNo) {
     if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
 
-    // Encode routeNo for URL
-    const encodedRouteNo = encodeURIComponent(routeNo);
-    const requestUrl = `${ROUTE_URL}?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10&routeNo=${encodedRouteNo}`;
+    // Using getBasic02 to find routeId
+    const url = `${BASE_URL}/getBasic02?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10000`;
 
     try {
-        const response = await axios.get(requestUrl);
-        const parser = new XMLParser();
-        const jsonObj = parser.parse(response.data);
+        const response = await axios.get(url);
+        const data = response.data;
+        const routes = data.body?.items?.route || [];
 
-        const items = jsonObj.response?.body?.items?.item;
-        if (!items) return null;
-
-        const item = Array.isArray(items) ? items[0] : items;
-        return item.routeId;
+        const target = routes.find(r => r.routeNo === routeNo);
+        return target ? target.routeId : null;
     } catch (error) {
-        console.warn(`[Mock] Route search failed for ${routeNo}. Using mock routeId.`);
-        // Mock fallback for common routes
-        if (routeNo.includes('급행1')) return 'DGB20000001';
-        if (routeNo.includes('401')) return 'DGB30000401';
-        return 'DGB-MOCK-ID';
+        console.warn(`[Mock] Route search failed. Using mock routeId.`);
+        if (routeNo.includes('급행1')) return '1000001074';
+        if (routeNo.includes('401')) return '1000000401';
+        return 'MOCK_ID';
     }
 }
 
 /**
  * Fetches real-time bus locations for a specific route.
- * @param {string} routeId - The unique ID of the route.
- * @returns {Promise<Array>} - List of active bus locations.
  */
 async function getRouteLocations(routeId) {
     if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
 
-    const requestUrl = `${LOCATION_URL}?serviceKey=${SERVICE_KEY}&routeId=${routeId}`;
+    const url = `${BASE_URL}/getPos02?serviceKey=${SERVICE_KEY}&routeId=${routeId}`;
 
     try {
-        const response = await axios.get(requestUrl);
-        const parser = new XMLParser();
-        const jsonObj = parser.parse(response.data);
+        const response = await axios.get(url);
+        const data = response.data;
 
-        const items = jsonObj.response?.body?.items?.item;
-        if (!items) return [];
-        return Array.isArray(items) ? items : [items];
+        const items = data.body?.items || [];
+        return items.map(item => ({
+            vehNo: item.vhcNo,
+            stationNm: item.bsNm, // Note: bsNm might be available in getPos02
+            arrPrevStationCnt: item.bsGap || 0,
+            x: item.xPos,
+            y: item.yPos
+        }));
     } catch (error) {
-        console.warn(`[Mock] Location fetch failed for ${routeId}. Using mock positions.`);
+        console.warn(`[Mock] Location fetch failed. Using mock positions.`);
         return [
             { vehNo: '대구70자 1234', stationNm: '대구역', arrPrevStationCnt: 1 },
-            { vehNo: '대구70자 5678', stationNm: '중앙로역', arrPrevStationCnt: 4 },
-            { vehNo: '대구70자 9012', stationNm: '반월당역', arrPrevStationCnt: 7 }
+            { vehNo: '대구70자 5678', stationNm: '중앙로역', arrPrevStationCnt: 4 }
         ];
     }
 }
