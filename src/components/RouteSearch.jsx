@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const RouteSearch = ({ onSearch }) => {
+const RouteSearch = ({ onSearch, showReset, onReset }) => {
     const [query, setQuery] = useState('');
     const [history, setHistory] = useState([]);
 
@@ -38,6 +38,11 @@ const RouteSearch = ({ onSearch }) => {
         localStorage.removeItem('recent_bus_routes');
     };
 
+    const handleReset = () => {
+        setQuery('');
+        if (onReset) onReset();
+    };
+
     return (
         <div className="search-container">
             <form onSubmit={handleSubmit} className="search-form">
@@ -67,6 +72,16 @@ const RouteSearch = ({ onSearch }) => {
                     >
                         조회
                     </button>
+                    {showReset && (
+                        <button
+                            type="button"
+                            className="reset-button"
+                            onClick={handleReset}
+                            style={{ padding: '0 16px', borderRadius: '16px', height: 'auto' }}
+                        >
+                            초기화
+                        </button>
+                    )}
                 </div>
             </form>
 
