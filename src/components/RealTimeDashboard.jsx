@@ -14,6 +14,7 @@ const RealTimeDashboard = () => {
     const [busLocations, setBusLocations] = useState([]);
     const [stationArrivals, setStationArrivals] = useState([]);
     const [routeStations, setRouteStations] = useState([]);
+    const [selectedDirection, setSelectedDirection] = useState('all');
     const [loading, setLoading] = useState(false);
 
     const handleSearch = async (routeNo) => {
@@ -31,10 +32,12 @@ const RealTimeDashboard = () => {
                 ]);
 
                 setRouteStations(stations);
+                setSelectedDirection('all'); // Reset direction filter
                 setBusLocations(locations.map((loc, idx) => ({
                     id: idx,
                     vehNo: loc.vehNo,
                     stationId: loc.stationId,
+                    moveDir: loc.moveDir,
                     stationIdx: idx
                 })));
             }
@@ -98,6 +101,28 @@ const RealTimeDashboard = () => {
                     {viewType === 'station' ? '반경 실시간 도착' : `${activeRoute}번 노선 추적`}
                 </h2>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {viewType === 'route' && (
+                        <div style={{ display: 'flex', gap: '8px', marginRight: '12px' }}>
+                            <button
+                                onClick={() => setSelectedDirection('all')}
+                                className={`direction-btn ${selectedDirection === 'all' ? 'active' : ''}`}
+                            >
+                                전체
+                            </button>
+                            <button
+                                onClick={() => setSelectedDirection('0')}
+                                className={`direction-btn ${selectedDirection === '0' ? 'active' : ''}`}
+                            >
+                                상행선
+                            </button>
+                            <button
+                                onClick={() => setSelectedDirection('1')}
+                                className={`direction-btn ${selectedDirection === '1' ? 'active' : ''}`}
+                            >
+                                하행선
+                            </button>
+                        </div>
+                    )}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(52, 199, 89, 0.1)', padding: '6px 12px', borderRadius: '20px' }}>
                         <div className="live-pulse"></div>
                         <span style={{ fontSize: '0.75rem', color: '#34c759', fontWeight: '900', letterSpacing: '0.5px' }}>LIVE</span>
@@ -134,27 +159,32 @@ const RealTimeDashboard = () => {
                 <div className="route-map-container">
                     <div className="route-track"></div>
                     {routeStations.length > 0 ? (
-                        routeStations.map((station, idx) => {
-                            const busesAtThisStation = busLocations.filter(b => b.stationId === station.bsId);
-                            return (
-                                <div key={idx} className={`station-item ${busesAtThisStation.length > 0 ? 'active' : ''}`}>
-                                    <div className="station-marker"></div>
-                                    <div className="station-name">{station.stationNm}</div>
-                                    <div className="bus-tags-container">
+                        routeStations
+                            .filter(station => selectedDirection === 'all' || station.moveDir === selectedDirection)
+                            .map((station, idx) => {
+                                const busesAtThisStation = busLocations.filter(b =>
+                                    b.stationId === station.bsId &&
+                                    (selectedDirection === 'all' || b.moveDir === selectedDirection)
+                                );
+                                return (
+                                    <div key={idx} className={`station-item ${busesAtThisStation.length > 0 ? 'active' : ''}`}>
+                                        <div className="station-marker"></div>
+                                        <div className="station-name">{station.stationNm}</div>
+                                        <div className="bus-tags-container">
+                                            {busesAtThisStation.map((bus, bIdx) => (
+                                                <div key={`${bus.id}-${bIdx}`} className="bus-label">
+                                                    {bus.vehNo}
+                                                </div>
+                                            ))}
+                                        </div>
                                         {busesAtThisStation.map((bus, bIdx) => (
-                                            <div key={`${bus.id}-${bIdx}`} className="bus-label">
-                                                {bus.vehNo}
+                                            <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
+                                                🚌
                                             </div>
                                         ))}
                                     </div>
-                                    {busesAtThisStation.map((bus, bIdx) => (
-                                        <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
-                                            🚌
-                                        </div>
-                                    ))}
-                                </div>
-                            );
-                        })
+                                );
+                            })
                     ) : (
                         <div style={{ textAlign: 'center', padding: '2rem', color: '#86868b' }}>
                             정류장 정보를 불러올 수 없거나 노선 정보가 없습니다.

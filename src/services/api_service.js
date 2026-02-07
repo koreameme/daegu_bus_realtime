@@ -83,7 +83,8 @@ async function getRouteLocations(routeId) {
         return items.map(item => ({
             vehNo: item.vhcNo || item.vhcNo2 || '알 수 없음',
             stationNm: item.bsNm || '정보 없음',
-            stationId: item.bsId, // Use this for matching
+            stationId: item.bsId,
+            moveDir: item.moveDir,
             arrPrevStationCnt: item.bsGap || 0,
             x: item.xPos,
             y: item.yPos
@@ -113,6 +114,8 @@ async function getRouteStations(routeId) {
         return items.map(item => ({
             stationNm: item.bsNm,
             bsId: item.bsId,
+            moveDir: item.moveDir,
+            seq: item.seq,
             x: item.xPos,
             y: item.yPos
         }));
