@@ -139,9 +139,15 @@ const RealTimeDashboard = () => {
                             <div key={idx} className={`station-item ${busesAtThisStation.length > 0 ? 'active' : ''}`}>
                                 <div className="station-marker"></div>
                                 <div className="station-name">{station}</div>
+                                <div className="bus-tags-container">
+                                    {busesAtThisStation.map((bus, bIdx) => (
+                                        <div key={`${bus.id}-${bIdx}`} className="bus-label">
+                                            {bus.vehNo}
+                                        </div>
+                                    ))}
+                                </div>
                                 {busesAtThisStation.map((bus, bIdx) => (
-                                    <div key={`${bus.id}-${bIdx}`} className="bus-icon-marker">
-                                        <div className="bus-label">{bus.vehNo}</div>
+                                    <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
                                         🚌
                                     </div>
                                 ))}

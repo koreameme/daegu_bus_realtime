@@ -36,14 +36,6 @@ const RouteSearch = ({ onSearch }) => {
                 <button
                     type="submit"
                     className="cta-button"
-                    style={{
-                        padding: '0 24px',
-                        whiteSpace: 'nowrap',
-                        borderRadius: '16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                    }}
                 >
                     조회
                 </button>

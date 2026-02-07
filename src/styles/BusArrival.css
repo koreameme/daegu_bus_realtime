@@ -157,40 +157,32 @@
     transform-style: preserve-3d;
 }
 
+.bus-tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
 .bus-label {
-    position: absolute;
-    left: 70px;
-    /* Closer to the icon on mobile by default, will adjust with MQ */
-    top: 50%;
-    transform: translateY(-50%);
     background: #000;
     color: #fff;
-    padding: 6px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
     font-weight: 800;
     white-space: nowrap;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     display: flex;
     align-items: center;
-    gap: 6px;
-    z-index: 20;
+    gap: 4px;
+    margin-left: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .bus-label::before {
     content: "🚌";
-    font-size: 0.9rem;
-}
-
-.bus-label::after {
-    content: "";
-    position: absolute;
-    left: -6px;
-    top: 50%;
-    transform: translateY(-50%);
-    border-top: 6px solid transparent;
-    border-bottom: 6px solid transparent;
-    border-right: 6px solid #000;
+    font-size: 0.8rem;
 }
 
 /* Reset Button */
@@ -296,11 +288,16 @@
 
 .cta-button {
     background: var(--primary-gradient);
-    padding: 16px 32px;
-    font-size: 1.05rem;
-    border-radius: 20px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 16px;
     letter-spacing: -0.2px;
     box-shadow: 0 15px 30px rgba(0, 122, 255, 0.3);
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-weight: 700;
+    transition: all 0.2s ease;
 }
 
 /* Responsive Adjustments */
@@ -338,7 +335,8 @@
     }
 
     .bus-label {
-        left: 55px;
+        margin-left: 8px;
+        padding: 3px 6px;
         font-size: 0.7rem;
     }
 
