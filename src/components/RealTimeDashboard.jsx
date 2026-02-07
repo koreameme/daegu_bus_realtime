@@ -181,17 +181,31 @@ const RealTimeDashboard = () => {
                                         <div className="station-marker"></div>
                                         <div className="station-name">{station.stationNm}</div>
                                         <div className="bus-tags-container">
-                                            {busesAtThisStation.map((bus, bIdx) => (
-                                                <div key={`${bus.id}-${bIdx}`} className="bus-label">
-                                                    {bus.vehNo}
-                                                </div>
-                                            ))}
+                                            {busesAtThisStation.map((bus, bIdx) => {
+                                                const directionColor = bus.moveDir === '0' ? '#ff3b30' : '#007aff';
+                                                return (
+                                                    <div
+                                                        key={`${bus.id}-${bIdx}`}
+                                                        className="bus-label"
+                                                        style={{ backgroundColor: directionColor }}
+                                                    >
+                                                        {bus.vehNo}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
-                                        {busesAtThisStation.map((bus, bIdx) => (
-                                            <div key={`icon-${bus.id}-${bIdx}`} className="bus-icon-marker">
-                                                🚌
-                                            </div>
-                                        ))}
+                                        {busesAtThisStation.map((bus, bIdx) => {
+                                            const directionColor = bus.moveDir === '0' ? '#ff3b30' : '#007aff';
+                                            return (
+                                                <div
+                                                    key={`icon-${bus.id}-${bIdx}`}
+                                                    className="bus-icon-marker"
+                                                    style={{ color: directionColor }}
+                                                >
+                                                    🚌
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 );
                             })

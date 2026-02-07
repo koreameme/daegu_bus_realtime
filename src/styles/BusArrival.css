@@ -530,6 +530,25 @@
     box-shadow: 0 4px 10px rgba(0, 122, 255, 0.1);
 }
 
+/* Bus Label Styles */
+.bus-tags-container {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+
+.bus-label {
+    padding: 6px 12px;
+    border-radius: 12px;
+    background: var(--primary);
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
 /* Narrow screen fixes */
 @media (max-width: 450px) {
 
