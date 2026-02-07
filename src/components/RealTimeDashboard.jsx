@@ -31,6 +31,10 @@ const RealTimeDashboard = () => {
                     getRouteStations(routeId)
                 ]);
 
+                console.log(`[Debug] Found ${locations.length} buses, ${stations.length} stations`);
+                console.log('[Debug] Sample bus location:', locations[0]);
+                console.log('[Debug] Sample station:', stations[0]);
+
                 setRouteStations(stations);
                 if (resetDirection) {
                     setSelectedDirection('all'); // Reset direction filter only for new searches
@@ -80,7 +84,7 @@ const RealTimeDashboard = () => {
         }
     };
 
-    // 2-second Auto-refresh
+    // 5-second Auto-refresh (reduced from 2s to avoid API rate limits)
     useEffect(() => {
         const interval = setInterval(() => {
             if (viewType === 'station') {
@@ -88,7 +92,7 @@ const RealTimeDashboard = () => {
             } else if (viewType === 'route' && activeRoute) {
                 handleSearch(activeRoute, false); // Don't reset direction on auto-refresh
             }
-        }, 2000);
+        }, 5000);
         return () => clearInterval(interval);
     }, [viewType, activeRoute, selectedDirection]);
 

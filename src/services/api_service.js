@@ -142,15 +142,42 @@ async function getRouteLocations(routeId) {
         const data = response.data;
 
         const items = data.body?.items || [];
-        return items.map(item => ({
-            vehNo: item.vhcNo || item.vhcNo2 || '알 수 없음',
-            stationNm: item.bsNm || '정보 없음',
-            stationId: item.bsId,
-            moveDir: item.moveDir,
-            arrPrevStationCnt: item.bsGap || 0,
-            x: item.xPos,
-            y: item.yPos
-        }));
+
+        // Debug: Log raw API response for troubleshooting
+        if (items.length > 0) {
+            console.log(`[API Debug] getPos02 returned ${items.length} buses`);
+            console.log('[API Debug] First bus raw data:', items[0]);
+        } else {
+            console.log('[API Debug] No buses currently running on this route');
+        }
+
+        // Filter and map bus locations
+        const locations = items
+            .filter(item => {
+                // Filter out buses without station ID
+                if (!item.bsId) {
+                    console.warn('[API Warning] Bus without station ID:', item);
+                    return false;
+                }
+                return true;
+            })
+            .map(item => {
+                // Extract vehicle number with better fallback handling
+                const vehNo = (item.vhcNo || item.vhcNo2 || '').trim() || '차량번호 없음';
+
+                return {
+                    vehNo: vehNo,
+                    stationNm: item.bsNm || '정보 없음',
+                    stationId: item.bsId,
+                    moveDir: item.moveDir,
+                    arrPrevStationCnt: item.bsGap || 0,
+                    x: item.xPos,
+                    y: item.yPos
+                };
+            });
+
+        console.log(`[API Debug] Processed ${locations.length} valid bus locations`);
+        return locations;
     } catch (error) {
         console.warn(`[Mock] Location fetch failed. Using mock positions.`);
         return [
@@ -162,10 +189,32 @@ async function getRouteLocations(routeId) {
 
 /**
  * Fetches the list of stations for a specific route.
+ * Uses localStorage cache to avoid repeated API calls.
  */
 async function getRouteStations(routeId) {
     if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
 
+    const CACHE_KEY = `daegu_bus_stations_${routeId}`;
+    const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+    // 1. Try cache first
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+            const { timestamp, stations } = JSON.parse(cached);
+            if (Date.now() - timestamp < CACHE_DURATION) {
+                console.log(`[Cache Hit] Stations for ${routeId} from cache`);
+                return stations;
+            } else {
+                console.log(`[Cache] Station cache expired for ${routeId}`);
+                localStorage.removeItem(CACHE_KEY);
+            }
+        }
+    } catch (e) {
+        console.warn('[Cache] Error reading station cache:', e);
+    }
+
+    // 2. Fetch from API if cache miss
     const url = `${BASE_URL}/getBs02?serviceKey=${SERVICE_KEY}&routeId=${routeId}`;
 
     try {
@@ -173,7 +222,9 @@ async function getRouteStations(routeId) {
         const data = response.data;
         const items = data.body?.items || [];
 
-        return items.map(item => ({
+        console.log(`[API Debug] getBs02 returned ${items.length} stations`);
+
+        const stations = items.map(item => ({
             stationNm: item.bsNm,
             bsId: item.bsId,
             moveDir: item.moveDir,
@@ -181,7 +232,36 @@ async function getRouteStations(routeId) {
             x: item.xPos,
             y: item.yPos
         }));
+
+        // 3. Save to cache
+        if (stations.length > 0) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                    timestamp: Date.now(),
+                    stations: stations
+                }));
+                console.log(`[Cache] Saved ${stations.length} stations for ${routeId}`);
+            } catch (e) {
+                console.warn('[Cache] Error saving station cache (likely full):', e);
+            }
+        }
+
+        return stations;
     } catch (error) {
+        // Log detailed error information
+        const statusCode = error.response?.status;
+        const errorMsg = error.response?.data || error.message;
+
+        console.error(`[API Error] getBs02 failed:`, {
+            status: statusCode,
+            message: errorMsg,
+            url: url
+        });
+
+        if (statusCode === 429) {
+            console.error('⚠️ API Rate Limit Exceeded! Too many requests.');
+        }
+
         console.warn(`[Mock] Station list fetch failed. Using mock stations.`);
         return [
             { stationNm: '대구역', bsId: '7031011500' },
