@@ -78,12 +78,16 @@ const RealTimeDashboard = () => {
 
     return (
         <div className="bus-arrival-container">
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', alignItems: 'stretch' }}>
                 <div style={{ flex: 1 }}>
                     <RouteSearch onSearch={handleSearch} />
                 </div>
                 {viewType === 'route' && (
-                    <button className="reset-button" onClick={handleReset}>
+                    <button
+                        className="reset-button"
+                        onClick={handleReset}
+                        style={{ padding: '0 16px', borderRadius: '16px', height: 'auto' }}
+                    >
                         초기화
                     </button>
                 )}

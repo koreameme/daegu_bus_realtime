@@ -12,8 +12,8 @@ const RouteSearch = ({ onSearch }) => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="search-form" style={{ marginBottom: '24px' }}>
-            <div style={{ display: 'flex', gap: '10px' }}>
+        <form onSubmit={handleSubmit} className="search-form">
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'stretch' }}>
                 <input
                     type="text"
                     placeholder="노선 번호 입력 (예: 급행1, 401)"
@@ -22,9 +22,9 @@ const RouteSearch = ({ onSearch }) => {
                     style={{
                         flex: 1,
                         padding: '14px 20px',
-                        borderRadius: '18px',
-                        border: '1px solid rgba(0,0,0,0.05)',
-                        background: 'rgba(255,255,255,0.8)',
+                        borderRadius: '16px',
+                        border: '1px solid rgba(0,0,0,0.1)',
+                        background: 'rgba(255,255,255,0.9)',
                         backdropFilter: 'blur(10px)',
                         fontSize: '1rem',
                         fontWeight: '600',
@@ -36,7 +36,14 @@ const RouteSearch = ({ onSearch }) => {
                 <button
                     type="submit"
                     className="cta-button"
-                    style={{ padding: '12px 28px', whiteSpace: 'nowrap', borderRadius: '18px' }}
+                    style={{
+                        padding: '0 24px',
+                        whiteSpace: 'nowrap',
+                        borderRadius: '16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                    }}
                 >
                     조회
                 </button>
