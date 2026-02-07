@@ -4,6 +4,51 @@ import axios from 'axios';
 const SERVICE_KEY = import.meta.env.VITE_DAEGU_BUS_SERVICE_KEY;
 const BASE_URL = 'https://apis.data.go.kr/6270000/dbmsapi02';
 
+// Cache configuration
+const CACHE_KEY = 'daegu_bus_routes_cache';
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+
+/**
+ * Get cached routes from localStorage
+ */
+function getCachedRoutes() {
+    try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (!cached) return null;
+
+        const { timestamp, routes } = JSON.parse(cached);
+
+        // Check if cache is still valid
+        if (Date.now() - timestamp < CACHE_DURATION) {
+            console.log('[Cache] Using cached route data');
+            return routes;
+        } else {
+            console.log('[Cache] Cache expired, will fetch fresh data');
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+    } catch (error) {
+        console.warn('[Cache] Error reading cache:', error);
+        return null;
+    }
+}
+
+/**
+ * Save routes to localStorage cache
+ */
+function setCachedRoutes(routes) {
+    try {
+        const cacheData = {
+            timestamp: Date.now(),
+            routes: routes
+        };
+        localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+        console.log(`[Cache] Saved ${routes.length} routes to cache`);
+    } catch (error) {
+        console.warn('[Cache] Error saving cache:', error);
+    }
+}
+
 /**
  * Fetches real-time bus arrival information for a specific stop.
  */
@@ -45,17 +90,34 @@ async function getBusArrivals(stopId) {
 
 /**
  * Searches for a route by number and returns its ID.
+ * Uses localStorage cache to avoid repeated API calls.
  */
 async function getRouteId(routeNo) {
     if (!SERVICE_KEY) throw new Error('DAEGU_BUS_SERVICE_KEY missing');
 
-    // Using getBasic02 to find routeId
+    // Try cache first
+    const cachedRoutes = getCachedRoutes();
+    if (cachedRoutes) {
+        const target = cachedRoutes.find(r => r.routeNo === routeNo);
+        if (target) {
+            console.log(`[Cache Hit] Found route ${routeNo} -> ${target.routeId}`);
+            return target.routeId;
+        }
+    }
+
+    // Cache miss - fetch from API
+    console.log('[Cache Miss] Fetching all routes from API...');
     const url = `${BASE_URL}/getBasic02?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10000`;
 
     try {
         const response = await axios.get(url);
         const data = response.data;
         const routes = data.body?.items?.route || [];
+
+        // Save to cache for future use
+        if (routes.length > 0) {
+            setCachedRoutes(routes);
+        }
 
         const target = routes.find(r => r.routeNo === routeNo);
         return target ? target.routeId : null;
