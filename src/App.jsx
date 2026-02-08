@@ -7,12 +7,61 @@ import './App.css';
 
 function App() {
     const [activeTab, setActiveTab] = useState('timetable'); // Default to Timetable
+    const [touchStart, setTouchStart] = useState(null);
+    const [touchEnd, setTouchEnd] = useState(null);
+
+    // Filter threshold for swipe detection
+    const minSwipeDistance = 50;
+    const tabOrder = ['timetable', 'realtime', 'about'];
+
+    const onTouchStart = (e) => {
+        setTouchEnd(null);
+        setTouchStart({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+
+    const onTouchMove = (e) => {
+        setTouchEnd({
+            x: e.targetTouches[0].clientX,
+            y: e.targetTouches[0].clientY
+        });
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distanceX = touchStart.x - touchEnd.x;
+        const distanceY = touchStart.y - touchEnd.y;
+        const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY);
+
+        if (isHorizontalSwipe && Math.abs(distanceX) > minSwipeDistance) {
+            const currentIndex = tabOrder.indexOf(activeTab);
+            if (distanceX > 0) {
+                // Swipe Left -> Next Tab
+                if (currentIndex < tabOrder.length - 1) {
+                    setActiveTab(tabOrder[currentIndex + 1]);
+                }
+            } else {
+                // Swipe Right -> Previous Tab
+                if (currentIndex > 0) {
+                    setActiveTab(tabOrder[currentIndex - 1]);
+                }
+            }
+        }
+    };
 
     console.log('[App] Current Active Tab:', activeTab); // Debug Log
 
     return (
         <div className="App">
-            <div className="content-container">
+            <div
+                className="content-container"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+            >
                 <div className={`tabs-slider ${activeTab}`}>
                     <div className="tab-pane">
                         <StationArrivals />
