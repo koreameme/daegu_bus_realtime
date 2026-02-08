@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import StationArrivals from './components/StationArrivals.jsx';
 import BusRouteTracker from './components/BusRouteTracker.jsx';
 import AboutPage from './components/AboutPage.jsx';
@@ -6,68 +6,68 @@ import BottomNav from './components/BottomNav.jsx';
 import './App.css';
 
 function App() {
-    const [activeTab, setActiveTab] = useState('timetable'); // Default to Timetable
-    const [touchStart, setTouchStart] = useState(null);
-    const [touchEnd, setTouchEnd] = useState(null);
+    const [activeTab, setActiveTab] = useState('timetable');
+    const containerRef = useRef(null);
+    const touchStart = useRef(null);
 
-    // Filter threshold for swipe detection
-    const minSwipeDistance = 30; // Reduced for better sensitivity
-    const tabOrder = ['timetable', 'realtime', 'about'];
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
 
-    const onTouchStart = (e) => {
-        setTouchEnd(null);
-        setTouchStart({
-            x: e.targetTouches[0].clientX,
-            y: e.targetTouches[0].clientY
-        });
-    };
+        const handleTouchStart = (e) => {
+            touchStart.current = {
+                x: e.touches[0].clientX,
+                y: e.touches[0].clientY,
+                time: Date.now()
+            };
+        };
 
-    const onTouchMove = (e) => {
-        setTouchEnd({
-            x: e.targetTouches[0].clientX,
-            y: e.targetTouches[0].clientY
-        });
-    };
+        const handleTouchEnd = (e) => {
+            if (!touchStart.current) return;
 
-    const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
+            const touchEnd = {
+                x: e.changedTouches[0].clientX,
+                y: e.changedTouches[0].clientY,
+                time: Date.now()
+            };
 
-        const distanceX = touchStart.x - touchEnd.x;
-        const distanceY = touchStart.y - touchEnd.y;
+            const dx = touchStart.current.x - touchEnd.x;
+            const dy = touchStart.current.y - touchEnd.y;
+            const dt = touchEnd.time - touchStart.current.time;
 
-        // Ensure it's more horizontal than vertical
-        const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY) * 1.5;
+            // Thresholds
+            const minDistance = 50;
+            const maxTime = 300; // Swipe must be fast
 
-        if (isHorizontalSwipe && Math.abs(distanceX) > minSwipeDistance) {
-            const currentIndex = tabOrder.indexOf(activeTab);
-            if (distanceX > 0) {
-                // Swipe Left -> Next Tab
-                if (currentIndex < tabOrder.length - 1) {
+            if (dt < maxTime && Math.abs(dx) > minDistance && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                const tabOrder = ['timetable', 'realtime', 'about'];
+                const currentIndex = tabOrder.indexOf(activeTab);
+
+                if (dx > 0 && currentIndex < tabOrder.length - 1) {
                     setActiveTab(tabOrder[currentIndex + 1]);
-                }
-            } else {
-                // Swipe Right -> Previous Tab
-                if (currentIndex > 0) {
+                } else if (dx < 0 && currentIndex > 0) {
                     setActiveTab(tabOrder[currentIndex - 1]);
                 }
             }
-        }
 
-        // Reset state
-        setTouchStart(null);
-        setTouchEnd(null);
-    };
+            touchStart.current = null;
+        };
 
-    console.log('[App] Current Active Tab:', activeTab); // Debug Log
+        // Use native listeners to bypass React's event pooling and potential scroll conflicts
+        container.addEventListener('touchstart', handleTouchStart, { passive: true });
+        container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+        return () => {
+            container.removeEventListener('touchstart', handleTouchStart);
+            container.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [activeTab]);
+
+    console.log('[App] Current Active Tab:', activeTab);
 
     return (
         <div className="App">
-            <div
-                className="content-container"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-            >
+            <div className="content-container" ref={containerRef}>
                 <div className={`tabs-slider ${activeTab}`}>
                     <div className="tab-pane">
                         <StationArrivals />
