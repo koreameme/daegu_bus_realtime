@@ -11,6 +11,8 @@
     overflow: hidden;
     /* Clip the slider */
     position: relative;
+    touch-action: pan-y;
+    /* Allow vertical scroll, but capture horizontal gestures */
 }
 
 .tabs-slider {
@@ -28,6 +30,8 @@
     overflow-y: auto;
     /* Independent scrolling for each tab */
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+    /* Ensure vertical scrolling works inside the pane */
 }
 
 /* Tab indices */

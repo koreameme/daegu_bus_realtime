@@ -11,7 +11,7 @@ function App() {
     const [touchEnd, setTouchEnd] = useState(null);
 
     // Filter threshold for swipe detection
-    const minSwipeDistance = 50;
+    const minSwipeDistance = 30; // Reduced for better sensitivity
     const tabOrder = ['timetable', 'realtime', 'about'];
 
     const onTouchStart = (e) => {
@@ -34,7 +34,9 @@ function App() {
 
         const distanceX = touchStart.x - touchEnd.x;
         const distanceY = touchStart.y - touchEnd.y;
-        const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY);
+
+        // Ensure it's more horizontal than vertical
+        const isHorizontalSwipe = Math.abs(distanceX) > Math.abs(distanceY) * 1.5;
 
         if (isHorizontalSwipe && Math.abs(distanceX) > minSwipeDistance) {
             const currentIndex = tabOrder.indexOf(activeTab);
@@ -50,6 +52,10 @@ function App() {
                 }
             }
         }
+
+        // Reset state
+        setTouchStart(null);
+        setTouchEnd(null);
     };
 
     console.log('[App] Current Active Tab:', activeTab); // Debug Log
