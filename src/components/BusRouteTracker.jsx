@@ -151,7 +151,7 @@ const BusRouteTracker = () => {
                 <div className="result-card animate-fadeIn">
                     <div className="header">
                         <Navigation className="icon" style={{ color: '#10b981' }} />
-                        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>
+                        <h2 className="result-title">
                             {activeRoute}번 노선 추적
                         </h2>
                     </div>

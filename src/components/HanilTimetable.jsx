@@ -152,9 +152,11 @@ const HanilTimetable = () => {
                         <Search style={{ width: '1.25rem', height: '1.25rem' }} />
                         조회하기
                     </button>
-                    <button className="reset-btn" onClick={handleReset}>
-                        초기화
-                    </button>
+                    {searchResult && (
+                        <button className="reset-btn" onClick={handleReset}>
+                            초기화
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -163,7 +165,7 @@ const HanilTimetable = () => {
                     <div className="result-card animate-fadeIn">
                         <div className="header">
                             <Clock style={{ width: '1.5rem', height: '1.5rem', color: '#4f46e5' }} />
-                            <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>근무 시간 정보</h2>
+                            <h2 className="result-title">근무 시간 정보</h2>
                         </div>
                         <div className="info-cards">
                             <div className="info-card blue">
@@ -190,7 +192,7 @@ const HanilTimetable = () => {
                         <div className="detail-table-card animate-fadeIn">
                             <div className="header">
                                 <MapPin style={{ width: '1.5rem', height: '1.5rem', color: '#10b981' }} />
-                                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#1f2937', margin: 0 }}>상세 시간표</h2>
+                                <h2 className="result-title">상세 시간표</h2>
                             </div>
                             <div className="table-wrapper">
                                 <table>
