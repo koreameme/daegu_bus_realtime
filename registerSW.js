@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/daegu_bus_realtime/sw.js', { scope: '/daegu_bus_realtime/' })})}
