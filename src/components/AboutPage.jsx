@@ -6,12 +6,11 @@ import './AboutPage.css';
 const AboutPage = () => {
     return (
         <div className="about-container" style={{ paddingBottom: '80px' }}>
-            <div className="header">
-                <Info className="icon" />
-                <h1>소개</h1>
-            </div>
-
             <div className="info-card">
+                <div className="header">
+                    <Info className="icon" />
+                    <h1>소개</h1>
+                </div>
                 <h2 className="app-title">
                     <Bus style={{ width: '1.5rem', height: '1.5rem', verticalAlign: 'middle', marginRight: '0.5rem' }} />
                     대구 버스 리얼타임
