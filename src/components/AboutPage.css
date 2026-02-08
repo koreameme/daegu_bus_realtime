@@ -28,12 +28,16 @@
     font-weight: bold;
     color: #1f2937;
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .about-container .icon {
     width: 2rem;
     height: 2rem;
     color: #4f46e5;
+    flex-shrink: 0;
 }
 
 .about-container .app-title {
@@ -42,6 +46,9 @@
     margin-bottom: 0.75rem;
     color: #4f46e5;
     /* Primary color */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .about-container .description {
