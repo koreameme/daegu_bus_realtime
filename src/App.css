@@ -1,0 +1,44 @@
+.App {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+.content-container {
+    flex: 1;
+    overflow: hidden;
+    /* Clip the slider */
+    position: relative;
+}
+
+.tabs-slider {
+    display: flex;
+    height: 100%;
+    width: 300%;
+    /* 3 tabs * 100% */
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+}
+
+.tab-pane {
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    /* Independent scrolling for each tab */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Tab indices */
+.tabs-slider.timetable {
+    transform: translateX(0%);
+}
+
+.tabs-slider.realtime {
+    transform: translateX(-33.333%);
+}
+
+.tabs-slider.about {
+    transform: translateX(-66.666%);
+}
