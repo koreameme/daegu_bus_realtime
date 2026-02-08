@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+import { Search, RotateCcw, X, Clock } from 'lucide-react';
 
 const RouteSearch = ({ onSearch, showReset, onReset }) => {
     const [query, setQuery] = useState('');
@@ -44,49 +46,49 @@ const RouteSearch = ({ onSearch, showReset, onReset }) => {
     };
 
     return (
-        <div className="search-container">
-            <form onSubmit={handleSubmit} className="search-form">
-                <div className="search-row">
+        <div className="route-search-wrapper">
+            <form onSubmit={handleSubmit} className="search-grid">
+                <div className="form-group">
+                    <label>노선 번호</label>
                     <input
                         type="text"
-                        placeholder="노선 번호 입력 (예: 급행1, 401)"
+                        placeholder="예: 401, 급행1"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         className="search-input"
-                        style={{
-                            padding: '14px 20px',
-                            borderRadius: '16px',
-                            border: '1px solid rgba(0,0,0,0.1)',
-                            background: 'rgba(255,255,255,0.9)',
-                            backdropFilter: 'blur(10px)',
-                            fontWeight: '600',
-                            outline: 'none',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.03)',
-                            transition: 'all 0.3s ease'
-                        }}
                     />
-                    <button
-                        type="submit"
-                        className="cta-button"
-                    >
-                        조회
-                    </button>
-                    {showReset && (
-                        <button
-                            type="button"
-                            className="reset-button"
-                            onClick={handleReset}
-                        >
-                            초기화
-                        </button>
-                    )}
                 </div>
             </form>
 
+            <div className="button-group" style={{ marginTop: '1rem' }}>
+                <button
+                    type="submit"
+                    className="search-btn"
+                    onClick={handleSubmit}
+                    disabled={!query.trim()}
+                >
+                    <Search style={{ width: '1.25rem', height: '1.25rem' }} />
+                    조회하기
+                </button>
+                {showReset && (
+                    <button
+                        type="button"
+                        className="reset-button reset-btn"
+                        onClick={handleReset}
+                    >
+                        <RotateCcw style={{ width: '1.25rem', height: '1.25rem' }} />
+                        초기화
+                    </button>
+                )}
+            </div>
+
             {history.length > 0 && (
-                <div className="recent-searches" style={{ width: '100%', maxWidth: '500px' }}>
+                <div className="recent-searches">
                     <div className="recent-header">
-                        <span>최근 검색</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <Clock style={{ width: '1rem', height: '1rem' }} />
+                            <span>최근 검색</span>
+                        </div>
                         <button onClick={clearHistory} className="clear-history">지우기</button>
                     </div>
                     <div className="recent-tags">

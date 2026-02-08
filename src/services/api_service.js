@@ -8,10 +8,21 @@ const BASE_URL = 'https://apis.data.go.kr/6270000/dbmsapi02';
 const CACHE_KEY = 'daegu_bus_routes_cache';
 const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 
+// In-memory cache to avoid repeated localStorage reads
+const memoryCache = {
+    routes: null,
+    stations: {}
+};
+
 /**
- * Get cached routes from localStorage
+ * Get cached routes from memory or localStorage
  */
 function getCachedRoutes() {
+    // 1. Check memory cache first
+    if (memoryCache.routes) {
+        return memoryCache.routes;
+    }
+
     try {
         const cached = localStorage.getItem(CACHE_KEY);
         if (!cached) return null;
@@ -20,7 +31,8 @@ function getCachedRoutes() {
 
         // Check if cache is still valid
         if (Date.now() - timestamp < CACHE_DURATION) {
-            console.log('[Cache] Using cached route data');
+            console.log('[Cache] Using cached route data (from storage)');
+            memoryCache.routes = routes; // Populate memory cache
             return routes;
         } else {
             console.log('[Cache] Cache expired, will fetch fresh data');
@@ -34,10 +46,11 @@ function getCachedRoutes() {
 }
 
 /**
- * Save routes to localStorage cache
+ * Save routes to localStorage CACHE and memory
  */
 function setCachedRoutes(routes) {
     try {
+        memoryCache.routes = routes; // Update memory cache
         const cacheData = {
             timestamp: Date.now(),
             routes: routes
@@ -119,8 +132,19 @@ async function getRouteId(routeNo) {
             setCachedRoutes(routes);
         }
 
-        const target = routes.find(r => r.routeNo === routeNo);
-        return target ? target.routeId : null;
+        // Find all matches first
+        const targets = routes.filter(r => r.routeNo === routeNo);
+
+        if (targets.length > 0) {
+            // Heuristic: Prefer routeId ending in '000' (seems to be canonical ID)
+            // Example: 937 has 3000937088 and 3000937000. We want 3000937000.
+            const bestTarget = targets.find(r => r.routeId && r.routeId.endsWith('000')) || targets[0];
+
+            console.log(`[Route Search] Found ${targets.length} candidates for ${routeNo}. Selected: ${bestTarget.routeId} (from ${targets.map(t => t.routeId).join(', ')})`);
+            return bestTarget.routeId;
+        }
+
+        return null;
     } catch (error) {
         console.warn(`[Mock] Route search failed. Using mock routeId.`);
         if (routeNo.includes('급행1')) return '1000001074';
@@ -197,13 +221,19 @@ async function getRouteStations(routeId) {
     const CACHE_KEY = `daegu_bus_stations_${routeId}`;
     const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
 
+    // 0. Check memory cache
+    if (memoryCache.stations[routeId]) {
+        return memoryCache.stations[routeId];
+    }
+
     // 1. Try cache first
     try {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
             const { timestamp, stations } = JSON.parse(cached);
             if (Date.now() - timestamp < CACHE_DURATION) {
-                console.log(`[Cache Hit] Stations for ${routeId} from cache`);
+                console.log(`[Cache Hit] Stations for ${routeId} from cache (storage)`);
+                memoryCache.stations[routeId] = stations; // Populate memory cache
                 return stations;
             } else {
                 console.log(`[Cache] Station cache expired for ${routeId}`);
@@ -236,6 +266,7 @@ async function getRouteStations(routeId) {
         // 3. Save to cache
         if (stations.length > 0) {
             try {
+                memoryCache.stations[routeId] = stations; // Update memory cache
                 localStorage.setItem(CACHE_KEY, JSON.stringify({
                     timestamp: Date.now(),
                     stations: stations

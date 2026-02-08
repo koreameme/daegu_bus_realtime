@@ -10,13 +10,10 @@ const FIXED_STATIONS = [
 
 const RealTimeDashboard = () => {
     const [viewType, setViewType] = useState('station'); // 'station' or 'route'
-    const [activeRoute, setActiveRoute] = useState(null);
-    const [busLocations, setBusLocations] = useState([]);
-    const [stationArrivals, setStationArrivals] = useState([]);
-    const [routeStations, setRouteStations] = useState([]);
-    const [selectedDirection, setSelectedDirection] = useState('all');
-    const [loading, setLoading] = useState(false);
+    const [activeRouteId, setActiveRouteId] = useState(null);
+    const [isPageVisible, setIsPageVisible] = useState(true);
 
+    // Initial Search: Fetches everything (Stations + Locations)
     const handleSearch = async (routeNo, resetDirection = true) => {
         setLoading(true);
         setViewType('route');
@@ -25,6 +22,8 @@ const RealTimeDashboard = () => {
         try {
             const routeId = await getRouteId(routeNo);
             if (routeId) {
+                setActiveRouteId(routeId); // Store ID for polling
+
                 // Fetch both locations and the full station list for the route
                 const [locations, stations] = await Promise.all([
                     getRouteLocations(routeId),
@@ -32,8 +31,6 @@ const RealTimeDashboard = () => {
                 ]);
 
                 console.log(`[Debug] Found ${locations.length} buses, ${stations.length} stations`);
-                console.log('[Debug] Sample bus location:', locations[0]);
-                console.log('[Debug] Sample station:', stations[0]);
 
                 setRouteStations(stations);
                 if (resetDirection) {
@@ -54,10 +51,28 @@ const RealTimeDashboard = () => {
         }
     };
 
+    // Polling Update: Fetches ONLY Locations
+    const updateRouteLocations = async () => {
+        if (!activeRouteId) return;
+
+        try {
+            const locations = await getRouteLocations(activeRouteId);
+            setBusLocations(locations.map((loc, idx) => ({
+                id: idx,
+                vehNo: loc.vehNo,
+                stationId: loc.stationId,
+                moveDir: loc.moveDir,
+                stationIdx: idx
+            })));
+        } catch (error) {
+            console.error("Polling update failed:", error);
+        }
+    };
+
     const fetchArrivals = async () => {
-        setLoading(true);
-        setViewType('station');
-        setActiveRoute(null);
+        // Only show loading on initial fetch or manual reset, not periodic updates
+        if (stationArrivals.length === 0) setLoading(true);
+
         try {
             const arrivals = await getBusArrivals('7001001400'); // 대구역 (dbmsapi02)
             setStationArrivals(arrivals.map(arr => ({
@@ -73,28 +88,52 @@ const RealTimeDashboard = () => {
     };
 
     const handleReset = () => {
+        setViewType('station');
+        setActiveRoute(null);
+        setActiveRouteId(null);
         fetchArrivals();
     };
 
     const handleDirectionChange = async (direction) => {
         setSelectedDirection(direction);
-        // Refresh data for the current route without resetting direction
-        if (activeRoute) {
-            await handleSearch(activeRoute, false);
+        // Direction change is client-side filter only, no API recall needed usually
+        // But if we want to refresh data:
+        if (activeRouteId) {
+            updateRouteLocations();
         }
     };
 
-    // 5-second Auto-refresh (reduced from 2s to avoid API rate limits)
+    // Handle Visibility Change
     useEffect(() => {
+        const handleVisibilityChange = () => {
+            setIsPageVisible(!document.hidden);
+            if (!document.hidden) {
+                console.log("[App] Tab active, resuming polling");
+                // Immediate refresh when coming back
+                if (viewType === 'station') fetchArrivals();
+                else if (viewType === 'route' && activeRouteId) updateRouteLocations();
+            } else {
+                console.log("[App] Tab hidden, pausing polling");
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, [viewType, activeRouteId]);
+
+    // 5-second Auto-refresh (Smart Polling)
+    useEffect(() => {
+        if (!isPageVisible) return; // Stop polling if hidden
+
         const interval = setInterval(() => {
             if (viewType === 'station') {
                 fetchArrivals();
-            } else if (viewType === 'route' && activeRoute) {
-                handleSearch(activeRoute, false); // Don't reset direction on auto-refresh
+            } else if (viewType === 'route' && activeRouteId) {
+                updateRouteLocations(); // Only fetch locations!
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, [viewType, activeRoute, selectedDirection]);
+    }, [viewType, activeRouteId, isPageVisible]);
 
     useEffect(() => {
         fetchArrivals();
