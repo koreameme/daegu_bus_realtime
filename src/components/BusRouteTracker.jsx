@@ -295,31 +295,36 @@ const BusRouteTracker = () => {
                                             position: 'relative'
                                         }}></div>
 
-                                        <div className="station-info" style={{ flex: 1, paddingLeft: '12px' }}>
+                                        <div className="station-info" style={{ flex: 1, paddingLeft: '24px' }}>
                                             <div style={{ fontWeight: '600', color: '#1f2937' }}>{station.stationNm}</div>
                                             <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{station.bsId}</div>
                                         </div>
 
-                                        {busesHere.map(bus => (
-                                            <div key={bus.id} className="bus-icon" style={{
-                                                position: 'absolute',
-                                                left: '10px',
-                                                zIndex: 2,
-                                                background: '#ef4444',
-                                                color: 'white',
-                                                borderRadius: '12px',
-                                                padding: '2px 8px',
-                                                fontSize: '0.75rem',
-                                                fontWeight: 'bold',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '4px',
-                                                boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)'
-                                            }}>
-                                                <span>🚌</span>
-                                                <span>{bus.vehNo.slice(-4)}</span>
-                                            </div>
-                                        ))}
+                                        {busesHere.map(bus => {
+                                            const isUpbound = bus.moveDir === '0';
+                                            const busColor = isUpbound ? '#ef4444' : '#3b82f6';
+
+                                            return (
+                                                <div key={bus.id} className="bus-icon" style={{
+                                                    position: 'absolute',
+                                                    left: '10px',
+                                                    zIndex: 2,
+                                                    background: busColor,
+                                                    color: 'white',
+                                                    borderRadius: '12px',
+                                                    padding: '2px 8px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 'bold',
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '4px',
+                                                    boxShadow: `0 2px 4px ${isUpbound ? 'rgba(239, 68, 68, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
+                                                }}>
+                                                    <span>🚌</span>
+                                                    <span>{bus.vehNo.slice(-4)}</span>
+                                                </div>
+                                            );
+                                        })}
                                     </div>
                                 );
                             })
