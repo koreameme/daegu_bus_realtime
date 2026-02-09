@@ -111,10 +111,11 @@ async function getRouteId(routeNo) {
     // Try cache first
     const cachedRoutes = getCachedRoutes();
     if (cachedRoutes) {
-        const target = cachedRoutes.find(r => r.routeNo === routeNo);
-        if (target) {
-            console.log(`[Cache Hit] Found route ${routeNo} -> ${target.routeId}`);
-            return target.routeId;
+        const targets = cachedRoutes.filter(r => r.routeNo === routeNo);
+        if (targets.length > 0) {
+            const bestTarget = targets.find(r => r.routeId && r.routeId.endsWith('000')) || targets[0];
+            console.log(`[Cache Hit] Found route ${routeNo} -> ${bestTarget.routeId}`);
+            return bestTarget.routeId;
         }
     }
 
@@ -137,7 +138,6 @@ async function getRouteId(routeNo) {
 
         if (targets.length > 0) {
             // Heuristic: Prefer routeId ending in '000' (seems to be canonical ID)
-            // Example: 937 has 3000937088 and 3000937000. We want 3000937000.
             const bestTarget = targets.find(r => r.routeId && r.routeId.endsWith('000')) || targets[0];
 
             console.log(`[Route Search] Found ${targets.length} candidates for ${routeNo}. Selected: ${bestTarget.routeId} (from ${targets.map(t => t.routeId).join(', ')})`);
