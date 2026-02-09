@@ -6,7 +6,7 @@ const BASE_URL = 'https://apis.data.go.kr/6270000/dbmsapi02';
 
 // Cache configuration
 const CACHE_KEY = 'daegu_bus_routes_cache';
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_DURATION = 100 * 365 * 24 * 60 * 60 * 1000; // 100 years (effectively unlimited)
 
 // In-memory cache to avoid repeated localStorage reads
 const memoryCache = {

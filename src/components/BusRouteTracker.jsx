@@ -13,6 +13,31 @@ const BusRouteTracker = () => {
     const [selectedDirection, setSelectedDirection] = useState('all');
     const [loading, setLoading] = useState(false);
     const [isPageVisible, setIsPageVisible] = useState(true);
+    const [isUserActive, setIsUserActive] = useState(true);
+    const activityTimeoutRef = React.useRef(null);
+
+    const resetInactivityTimeout = () => {
+        setIsUserActive(true);
+        if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
+        activityTimeoutRef.current = setTimeout(() => {
+            console.log("[Route] Inactivity timeout reached (1m)");
+            setIsUserActive(false);
+        }, 60000); // 1 minute
+    };
+
+    // Handle User Activity
+    useEffect(() => {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        const handleActivity = () => resetInactivityTimeout();
+
+        events.forEach(event => document.addEventListener(event, handleActivity));
+        resetInactivityTimeout(); // Initial start
+
+        return () => {
+            events.forEach(event => document.removeEventListener(event, handleActivity));
+            if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
+        };
+    }, []);
 
     // Initial Search: Fetches everything (Stations + Locations)
     const handleSearch = async (routeNo, resetDirection = true) => {
@@ -103,7 +128,7 @@ const BusRouteTracker = () => {
     useEffect(() => {
         let intervalId;
 
-        if (activeRouteId && isPageVisible) {
+        if (activeRouteId && isPageVisible && isUserActive) {
             console.log("[Route] Starting 5s polling for", activeRoute);
             intervalId = setInterval(() => {
                 updateRouteLocations();
@@ -116,13 +141,13 @@ const BusRouteTracker = () => {
                 clearInterval(intervalId);
             }
         };
-    }, [activeRouteId, isPageVisible]);
+    }, [activeRouteId, isPageVisible, isUserActive]);
 
 
     // --- Filtering Logic for Display ---
     const getFilteredStations = () => {
         if (selectedDirection === 'all') return routeStations;
-        return routeStations.filter(st => st.updownCd === selectedDirection);
+        return routeStations.filter(st => st.moveDir === selectedDirection);
     };
 
     const getFilteredBuses = () => {
@@ -211,7 +236,7 @@ const BusRouteTracker = () => {
                             </div>
                         ) : (
                             filteredStations.map((station, index) => {
-                                const busesHere = filteredBuses.filter(b => b.stationId === station.stationId);
+                                const busesHere = filteredBuses.filter(b => b.stationId === station.bsId);
 
                                 return (
                                     <div key={index} className="station-item" style={{
@@ -243,8 +268,8 @@ const BusRouteTracker = () => {
                                         }}></div>
 
                                         <div className="station-info" style={{ flex: 1, paddingLeft: '12px' }}>
-                                            <div style={{ fontWeight: '600', color: '#1f2937' }}>{station.stationName}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{station.stationNo}</div>
+                                            <div style={{ fontWeight: '600', color: '#1f2937' }}>{station.stationNm}</div>
+                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{station.bsId}</div>
                                         </div>
 
                                         {busesHere.map(bus => (

@@ -12,6 +12,31 @@ const RealTimeDashboard = () => {
     const [viewType, setViewType] = useState('station'); // 'station' or 'route'
     const [activeRouteId, setActiveRouteId] = useState(null);
     const [isPageVisible, setIsPageVisible] = useState(true);
+    const [isUserActive, setIsUserActive] = useState(true);
+    const activityTimeoutRef = React.useRef(null);
+
+    const resetInactivityTimeout = () => {
+        setIsUserActive(true);
+        if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
+        activityTimeoutRef.current = setTimeout(() => {
+            console.log("[App] Inactivity timeout reached (1m)");
+            setIsUserActive(false);
+        }, 60000); // 1 minute
+    };
+
+    // Handle User Activity
+    useEffect(() => {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+        const handleActivity = () => resetInactivityTimeout();
+
+        events.forEach(event => document.addEventListener(event, handleActivity));
+        resetInactivityTimeout(); // Initial start
+
+        return () => {
+            events.forEach(event => document.removeEventListener(event, handleActivity));
+            if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
+        };
+    }, []);
 
     // Initial Search: Fetches everything (Stations + Locations)
     const handleSearch = async (routeNo, resetDirection = true) => {
@@ -123,7 +148,7 @@ const RealTimeDashboard = () => {
 
     // 5-second Auto-refresh (Smart Polling)
     useEffect(() => {
-        if (!isPageVisible) return; // Stop polling if hidden
+        if (!isPageVisible || !isUserActive) return; // Stop polling if hidden or inactive
 
         const interval = setInterval(() => {
             if (viewType === 'station') {
@@ -133,7 +158,7 @@ const RealTimeDashboard = () => {
             }
         }, 5000);
         return () => clearInterval(interval);
-    }, [viewType, activeRouteId, isPageVisible]);
+    }, [viewType, activeRouteId, isPageVisible, isUserActive]);
 
     useEffect(() => {
         fetchArrivals();

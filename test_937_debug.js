@@ -1,4 +1,7 @@
 import axios from 'axios';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const SERVICE_KEY = process.env.VITE_DAEGU_BUS_SERVICE_KEY;
 const BASE_URL = 'https://apis.data.go.kr/6270000/dbmsapi02';
