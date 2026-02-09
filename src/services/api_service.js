@@ -94,9 +94,9 @@ async function getBusArrivals(stopId) {
     } catch (error) {
         console.warn(`[WARNING] API call failed. Returning mock data. Error: ${error.message}`);
         return [
-            { routeNo: '급행1', arrTime: 320, arrPrevStationCnt: 2 },
-            { routeNo: '401', arrTime: 540, arrPrevStationCnt: 4 },
-            { routeNo: '708', arrTime: 900, arrPrevStationCnt: 7 }
+            { routeNo: '급행1', arrTime: '320', bsGap: '2', routeId: '1000001074' },
+            { routeNo: '401', arrTime: '540', bsGap: '4', routeId: '1000000401' },
+            { routeNo: '708', arrTime: '900', bsGap: '7', routeId: '1000000708' }
         ];
     }
 }
@@ -149,7 +149,9 @@ async function getRouteId(routeNo) {
         console.warn(`[Mock] Route search failed. Using mock routeId.`);
         if (routeNo.includes('급행1')) return '1000001074';
         if (routeNo.includes('401')) return '1000000401';
-        return 'MOCK_ID';
+        if (routeNo.includes('937')) return '3000937000';
+        if (routeNo.includes('649')) return '3000649000';
+        return '3000937000'; // Default to a known ID for testing
     }
 }
 
@@ -205,8 +207,8 @@ async function getRouteLocations(routeId) {
     } catch (error) {
         console.warn(`[Mock] Location fetch failed. Using mock positions.`);
         return [
-            { vehNo: '대구70자 1234', stationNm: '대구역', arrPrevStationCnt: 1 },
-            { vehNo: '대구70자 5678', stationNm: '중앙로역', arrPrevStationCnt: 4 }
+            { vehNo: '대구70자 1234', bsNm: '대구역', bsId: '7031011500', moveDir: '0', bsGap: 1 },
+            { vehNo: '대구70자 5678', bsNm: '중앙로역', bsId: '7031011600', moveDir: '0', bsGap: 4 }
         ];
     }
 }
@@ -295,9 +297,9 @@ async function getRouteStations(routeId) {
 
         console.warn(`[Mock] Station list fetch failed. Using mock stations.`);
         return [
-            { stationNm: '대구역', bsId: '7031011500' },
-            { stationNm: '중앙로역', bsId: '7031011600' },
-            { stationNm: '반월당역', bsId: '7031011700' }
+            { bsNm: '대구역', bsId: '7031011500', moveDir: '0' },
+            { bsNm: '중앙로역', bsId: '7031011600', moveDir: '0' },
+            { bsNm: '반월당역', bsId: '7031011700', moveDir: '0' }
         ];
     }
 }

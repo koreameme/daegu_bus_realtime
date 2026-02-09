@@ -12,6 +12,7 @@ const BusRouteTracker = () => {
     const [routeStations, setRouteStations] = useState([]);
     const [selectedDirection, setSelectedDirection] = useState('all');
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [isPageVisible, setIsPageVisible] = useState(true);
     const [isUserActive, setIsUserActive] = useState(true);
     const activityTimeoutRef = React.useRef(null);
@@ -42,6 +43,7 @@ const BusRouteTracker = () => {
     // Initial Search: Fetches everything (Stations + Locations)
     const handleSearch = async (routeNo, resetDirection = true) => {
         setLoading(true);
+        setError(null);
         setActiveRoute(routeNo);
 
         try {
@@ -68,9 +70,14 @@ const BusRouteTracker = () => {
                     moveDir: loc.moveDir,
                     stationIdx: idx
                 })));
+            } else {
+                setError(`${routeNo}번 노선을 찾을 수 없습니다.`);
+                setRouteStations([]);
+                setBusLocations([]);
             }
         } catch (error) {
             console.error("Search failed:", error);
+            setError("노선 정보를 가져오는 중 오류가 발생했습니다.");
         } finally {
             setLoading(false);
         }
@@ -172,8 +179,29 @@ const BusRouteTracker = () => {
                 />
             </div>
 
+            {loading && !activeRoute && (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#4f46e5' }}>
+                    <div className="animate-pulse">노선 정보를 검색하고 있습니다...</div>
+                </div>
+            )}
+
+            {error && (
+                <div style={{
+                    margin: '10px 0',
+                    padding: '12px',
+                    background: '#fef2f2',
+                    color: '#b91c1c',
+                    borderRadius: '8px',
+                    border: '1px solid #fee2e2',
+                    fontSize: '0.9rem',
+                    textAlign: 'center'
+                }}>
+                    ⚠️ {error}
+                </div>
+            )}
+
             {activeRoute && (
-                <div className="result-card animate-fadeIn">
+                <div className={`result-card animate-fadeIn ${loading ? 'opacity-50' : ''}`}>
                     <div className="header">
                         <Navigation className="icon" style={{ color: '#10b981' }} />
                         <h2 className="result-title">
