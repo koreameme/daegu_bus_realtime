@@ -111,16 +111,22 @@ async function getRouteId(routeNo) {
     // Try cache first
     const cachedRoutes = getCachedRoutes();
     if (cachedRoutes) {
-        const targets = cachedRoutes.filter(r => r.routeNo === routeNo);
+        // Check if route exists in cache first
+        const targets = cachedRoutes.filter(r => r.routeNo === routeNo || r.routeNo === routeNo.trim());
         if (targets.length > 0) {
-            const bestTarget = targets.find(r => r.routeId && r.routeId.endsWith('000')) || targets[0];
+            const bestTarget = targets.find(r => r.routeId && r.routeId.startsWith('300') && r.routeId.endsWith('000'))
+                || targets.find(r => r.routeId && r.routeId.endsWith('000'))
+                || targets[0];
+
             console.log(`[Cache Hit] Found route ${routeNo} -> ${bestTarget.routeId}`);
             return bestTarget.routeId;
         }
+
+        // If not found in cache, fall through to fetch fresh data
+        console.log(`[Cache Miss] Route ${routeNo} not found in cache. Fetching fresh data...`);
     }
 
-    // Cache miss - fetch from API
-    console.log('[Cache Miss] Fetching all routes from API...');
+    // Cache miss or not found in cache - fetch from API
     const url = `${BASE_URL}/getBasic02?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10000`;
 
     try {
@@ -133,8 +139,8 @@ async function getRouteId(routeNo) {
             setCachedRoutes(routes);
         }
 
-        // Find all matches first
-        const targets = routes.filter(r => r.routeNo === routeNo);
+        // Find all matches with looser comparison
+        const targets = routes.filter(r => String(r.routeNo).trim() === String(routeNo).trim());
 
         if (targets.length > 0) {
             // Heuristic: Prefer routeId ending in '000' (seems to be canonical ID)
@@ -143,7 +149,7 @@ async function getRouteId(routeNo) {
                 || targets.find(r => r.routeId && r.routeId.endsWith('000'))
                 || targets[0];
 
-            if (bestTarget.routeId.startsWith('360')) {
+            if (bestTarget.routeId && bestTarget.routeId.startsWith('360')) {
                 console.log(`[Route Search] Selected Gyeongsan Route ID: ${bestTarget.routeId}`);
             }
 
@@ -151,6 +157,7 @@ async function getRouteId(routeNo) {
             return bestTarget.routeId;
         }
 
+        console.warn(`[Route Search] No route found for ${routeNo}`);
         return null;
     } catch (error) {
         console.warn(`[Mock] Route search failed. Using mock routeId.`);
