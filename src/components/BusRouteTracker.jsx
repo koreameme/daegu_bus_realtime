@@ -303,9 +303,16 @@ const BusRouteTracker = () => {
 
                                         {busesHere.map(bus => {
                                             const isUpbound = bus.moveDir === '0';
-                                            const busColor = !isUserActive
-                                                ? '#9ca3af' // Gray when inactive
-                                                : (isUpbound ? '#ef4444' : '#3b82f6');
+                                            const isGyeongsan = activeRouteId && activeRouteId.startsWith('360');
+
+                                            let busColor;
+                                            if (!isUserActive) {
+                                                busColor = '#9ca3af'; // Gray when inactive
+                                            } else if (isGyeongsan) {
+                                                busColor = '#10b981'; // Green for Gyeongsan (both directions)
+                                            } else {
+                                                busColor = isUpbound ? '#ef4444' : '#3b82f6';
+                                            }
 
                                             // Helper to format arrival time (arTime: HHMMSS)
                                             const getArrivalStatus = (arTime) => {

@@ -138,7 +138,14 @@ async function getRouteId(routeNo) {
 
         if (targets.length > 0) {
             // Heuristic: Prefer routeId ending in '000' (seems to be canonical ID)
-            const bestTarget = targets.find(r => r.routeId && r.routeId.endsWith('000')) || targets[0];
+            // Also prioritize Daegu IDs (starting with 300) over Gyeongsan (360) unless only Gyeongsan exists
+            const bestTarget = targets.find(r => r.routeId && r.routeId.startsWith('300') && r.routeId.endsWith('000'))
+                || targets.find(r => r.routeId && r.routeId.endsWith('000'))
+                || targets[0];
+
+            if (bestTarget.routeId.startsWith('360')) {
+                console.log(`[Route Search] Selected Gyeongsan Route ID: ${bestTarget.routeId}`);
+            }
 
             console.log(`[Route Search] Found ${targets.length} candidates for ${routeNo}. Selected: ${bestTarget.routeId} (from ${targets.map(t => t.routeId).join(', ')})`);
             return bestTarget.routeId;
