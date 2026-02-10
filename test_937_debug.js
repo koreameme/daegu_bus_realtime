@@ -13,7 +13,7 @@ async function testRoute937() {
     const basicUrl = `${BASE_URL}/getBasic02?serviceKey=${SERVICE_KEY}&pageNo=1&numOfRows=10000`;
     const basicResponse = await axios.get(basicUrl);
     const routes = basicResponse.data.body?.items?.route || [];
-    const route937 = routes.find(r => r.routeNo === '937');
+    const route937 = { routeId: '3000937000' };
 
     if (!route937) {
         console.log('❌ Route 937 not found!');
@@ -29,43 +29,15 @@ async function testRoute937() {
     const posResponse = await axios.get(posUrl);
     const locations = posResponse.data.body?.items || [];
 
-    console.log(`📍 Bus locations (${locations.length} buses):`);
+    const now = new Date();
+    const nowStr = now.getHours().toString().padStart(2, '0') +
+        now.getMinutes().toString().padStart(2, '0') +
+        now.getSeconds().toString().padStart(2, '0');
+    console.log('Current System Time:', nowStr);
+
     locations.forEach((loc, idx) => {
-        console.log(`  Bus ${idx + 1}:`, {
-            vehNo: loc.vhcNo || loc.vhcNo2,
-            stationId: loc.bsId,
-            stationName: loc.bsNm,
-            moveDir: loc.moveDir
-        });
+        console.log(`  Bus ${idx + 1}: vehNo=${loc.vhcNo2}, arTime=${loc.arTime}, diff=${parseInt(loc.arTime) - parseInt(nowStr)}`);
     });
-    console.log('');
-
-    // Step 3: Get stations
-    const stationUrl = `${BASE_URL}/getBs02?serviceKey=${SERVICE_KEY}&routeId=${route937.routeId}`;
-    const stationResponse = await axios.get(stationUrl);
-    const stations = stationResponse.data.body?.items || [];
-
-    console.log(`🚏 Stations (${stations.length} stations):`);
-    console.log('First 5 stations:');
-    stations.slice(0, 5).forEach((station, idx) => {
-        console.log(`  ${idx + 1}. ${station.bsNm} (ID: ${station.bsId}, Dir: ${station.moveDir})`);
-    });
-    console.log('');
-
-    // Step 4: Check matching
-    console.log('🔍 Matching analysis:');
-    let matchCount = 0;
-    locations.forEach(loc => {
-        const matchingStation = stations.find(s => s.bsId === loc.bsId);
-        if (matchingStation) {
-            matchCount++;
-            console.log(`  ✅ Bus ${loc.vhcNo || loc.vhcNo2} matched to station: ${matchingStation.bsNm}`);
-        } else {
-            console.log(`  ❌ Bus ${loc.vhcNo || loc.vhcNo2} NOT matched (stationId: ${loc.bsId})`);
-        }
-    });
-
-    console.log(`\n📊 Summary: ${matchCount}/${locations.length} buses matched to stations`);
 }
 
 testRoute937().catch(console.error);

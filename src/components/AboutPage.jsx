@@ -30,7 +30,7 @@ const AboutPage = () => {
                     제공 기능
                 </h3>
                 <ul className="feature-list">
-                    <li>실시간 도착 예정 시간 조회</li>
+                    <li>실시간(5초간격) 도착 시간 조회</li>
                     <li>버스 노선별 실시간 위치 추적</li>
                     <li>상행/하행 노선 필터링</li>
                     <li>백그라운드 데이터 절약 모드</li>

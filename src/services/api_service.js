@@ -197,6 +197,7 @@ async function getRouteLocations(routeId) {
                     stationId: item.bsId,
                     moveDir: item.moveDir,
                     arrPrevStationCnt: item.bsGap || 0,
+                    arTime: item.arTime,
                     x: item.xPos,
                     y: item.yPos
                 };
@@ -207,8 +208,8 @@ async function getRouteLocations(routeId) {
     } catch (error) {
         console.warn(`[Mock] Location fetch failed. Using mock positions.`);
         return [
-            { vehNo: '대구70자 1234', bsNm: '대구역', bsId: '7031011500', moveDir: '0', bsGap: 1 },
-            { vehNo: '대구70자 5678', bsNm: '중앙로역', bsId: '7031011600', moveDir: '0', bsGap: 4 }
+            { vehNo: '대구70자 1234', bsNm: '대구역', bsId: '7031011500', moveDir: '0', bsGap: 1, arTime: '160500' },
+            { vehNo: '대구70자 5678', bsNm: '중앙로역', bsId: '7031011600', moveDir: '0', bsGap: 4, arTime: '160000' }
         ];
     }
 }

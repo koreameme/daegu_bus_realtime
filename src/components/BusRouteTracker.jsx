@@ -21,9 +21,9 @@ const BusRouteTracker = () => {
         setIsUserActive(true);
         if (activityTimeoutRef.current) clearTimeout(activityTimeoutRef.current);
         activityTimeoutRef.current = setTimeout(() => {
-            console.log("[Route] Inactivity timeout reached (1m)");
+            console.log("[Route] Inactivity timeout reached (3m)");
             setIsUserActive(false);
-        }, 60000); // 1 minute
+        }, 180000); // 3 minutes
     };
 
     // Handle User Activity
@@ -68,6 +68,7 @@ const BusRouteTracker = () => {
                     vehNo: loc.vehNo,
                     stationId: loc.stationId,
                     moveDir: loc.moveDir,
+                    arTime: loc.arTime,
                     stationIdx: idx
                 })));
             } else {
@@ -94,6 +95,7 @@ const BusRouteTracker = () => {
                 vehNo: loc.vehNo,
                 stationId: loc.stationId,
                 moveDir: loc.moveDir,
+                arTime: loc.arTime,
                 stationIdx: idx
             })));
         } catch (error) {
@@ -295,14 +297,40 @@ const BusRouteTracker = () => {
                                             position: 'relative'
                                         }}></div>
 
-                                        <div className="station-info" style={{ flex: 1, paddingLeft: '24px' }}>
-                                            <div style={{ fontWeight: '600', color: '#1f2937' }}>{station.stationNm}</div>
-                                            <div style={{ fontSize: '0.8rem', color: '#9ca3af' }}>{station.bsId}</div>
+                                        <div className="station-info" style={{ flex: 1, paddingLeft: '64px' }}>
+                                            <div style={{ fontWeight: 'normal', color: '#1f2937', fontSize: '1.05rem' }}>{station.stationNm}</div>
                                         </div>
 
                                         {busesHere.map(bus => {
                                             const isUpbound = bus.moveDir === '0';
-                                            const busColor = isUpbound ? '#ef4444' : '#3b82f6';
+                                            const busColor = !isUserActive
+                                                ? '#9ca3af' // Gray when inactive
+                                                : (isUpbound ? '#ef4444' : '#3b82f6');
+
+                                            // Helper to format arrival time (arTime: HHMMSS)
+                                            const getArrivalStatus = (arTime) => {
+                                                if (!arTime) return null;
+                                                try {
+                                                    const h = parseInt(arTime.substring(0, 2));
+                                                    const m = parseInt(arTime.substring(2, 4));
+                                                    const s = parseInt(arTime.substring(4, 6));
+
+                                                    const now = new Date();
+                                                    const arDate = new Date();
+                                                    arDate.setHours(h, m, s, 0);
+
+                                                    const diffSeconds = Math.floor((now - arDate) / 1000);
+
+                                                    if (diffSeconds >= 0 && diffSeconds < 60) {
+                                                        return "방금 도착";
+                                                    }
+                                                    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} 통과`;
+                                                } catch (e) {
+                                                    return null;
+                                                }
+                                            };
+
+                                            const status = getArrivalStatus(bus.arTime);
 
                                             return (
                                                 <div key={bus.id} className="bus-icon" style={{
@@ -311,17 +339,35 @@ const BusRouteTracker = () => {
                                                     zIndex: 2,
                                                     background: busColor,
                                                     color: 'white',
-                                                    borderRadius: '12px',
-                                                    padding: '2px 8px',
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 'bold',
+                                                    borderRadius: '14px',
+                                                    padding: '4px 10px',
+                                                    fontSize: '0.9rem',
+                                                    fontWeight: '800',
                                                     display: 'flex',
+                                                    flexDirection: 'column',
                                                     alignItems: 'center',
-                                                    gap: '4px',
-                                                    boxShadow: `0 2px 4px ${isUpbound ? 'rgba(239, 68, 68, 0.3)' : 'rgba(59, 130, 246, 0.3)'}`
+                                                    justifyContent: 'center',
+                                                    minWidth: '70px',
+                                                    boxShadow: `0 3px 6px ${isUpbound ? 'rgba(239, 68, 68, 0.4)' : 'rgba(59, 130, 246, 0.4)'}`
                                                 }}>
-                                                    <span>🚌</span>
-                                                    <span>{bus.vehNo.slice(-4)}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                                        <span>🚌</span>
+                                                        <span>{bus.vehNo.slice(-4)}</span>
+                                                    </div>
+                                                    {status && (
+                                                        <div style={{
+                                                            fontSize: '0.65rem',
+                                                            fontWeight: 'normal',
+                                                            marginTop: '1px',
+                                                            opacity: 0.9,
+                                                            borderTop: '1px solid rgba(255,255,255,0.2)',
+                                                            paddingTop: '1px',
+                                                            width: '100%',
+                                                            textAlign: 'center'
+                                                        }}>
+                                                            {status}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             );
                                         })}

@@ -66,6 +66,7 @@ const RealTimeDashboard = () => {
                     vehNo: loc.vehNo,
                     stationId: loc.stationId,
                     moveDir: loc.moveDir,
+                    arTime: loc.arTime,
                     stationIdx: idx
                 })));
             }
@@ -87,6 +88,7 @@ const RealTimeDashboard = () => {
                 vehNo: loc.vehNo,
                 stationId: loc.stationId,
                 moveDir: loc.moveDir,
+                arTime: loc.arTime,
                 stationIdx: idx
             })));
         } catch (error) {
